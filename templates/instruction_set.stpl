@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <% include!("build.stpl"); %> 
+    </head>
+    <body>
+        <header>
+            <div>
+                <h1>Instruction set</h1>
+            </div>
+        </header>
+        <main class="flex flex-col justify-center">
+            <table class="">
+                <tr>
+                    <th>Instruction name</th>
+                    <% for i in 1..=config.instruction_len { %> 
+                        <th><%= i %></th>
+                    <% } %> 
+                </tr>
+                <% for instruction in &instructions { %>
+                    <tr>
+                        <td><%= instruction.name %></td>
+                    </tr>
+                <% } %>
+            </table>
+        </main>
+    </body>
+</html>
