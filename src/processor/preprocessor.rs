@@ -9,6 +9,8 @@ pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
         line_num += 1;
         actual_line_num += 1;
 
+        let line = line.trim();
+
         if line.is_empty() || line.starts_with("#") || line.starts_with("--") {
             line_num -= 1;
             continue;
@@ -29,9 +31,9 @@ pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
                         ));
                     }
 
+                    line_num -= 1;
                     println!("{} -> {}", name, line_num);
                     labels.insert(name.to_string(), line_num);
-                    line_num -= 1;
                     continue;
                 }
                 None => {
@@ -51,6 +53,8 @@ pub fn find_consts(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
     let mut actual_line_num: usize = 0;
     for line in lines {
         actual_line_num += 1;
+
+        let line = line.trim();
 
         if line.is_empty() {
             continue;

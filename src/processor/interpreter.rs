@@ -4,13 +4,15 @@ use crate::processor::preprocessor;
 use parse_int;
 use std::collections::HashMap;
 use std::result::Result;
-use std::{fmt, fs};
+use std::{fmt, fs, string, str};
+use crate::OutputType;
 
 pub fn interpret_and_write(
     input: &str,
     output_path: &str,
     config: AssemblerConfig,
     instructions: Vec<Instruction>,
+    output_type: OutputType,
 ) -> Result<(), String> {
     let mut line_num: u32 = 0; // line number in the code (excluding empty lines and labels)
     let mut actual_line_num: u32 = 0; // line number in the file
@@ -32,6 +34,8 @@ pub fn interpret_and_write(
     for line in input.split("\n") {
         line_num += 1;
         actual_line_num += 1;
+
+        let line = line.trim();
         let content: Vec<String> = line.split("--").map(str::to_string).collect();
         let command: Vec<&str> = content[0].trim().split(" ").collect::<Vec<&str>>();
 
@@ -56,7 +60,7 @@ pub fn interpret_and_write(
                 return Err(format!(
                     "Syntax error on line {}! Unknown instruction \"{}\"",
                     actual_line_num, command[0]
-                ))
+                ));
             }
         };
 
@@ -70,8 +74,6 @@ pub fn interpret_and_write(
         } else {
             vec![]
         };
-
-        println!("{:?}", args);
 
         if args.len() != expected_arg_len {
             return Err(format!(
@@ -107,7 +109,7 @@ pub fn interpret_and_write(
                         return Err(format!(
                             "Syntax error on line {}! Expected a label but got nothing!",
                             actual_line_num
-                        ))
+                        ));
                     }
                 };
                 if labels.contains_key(label_used) {
@@ -123,7 +125,7 @@ pub fn interpret_and_write(
                         return Err(format!(
                             "Syntax error on line {}! Expected a const but got nothing!",
                             actual_line_num
-                        ))
+                        ));
                     }
                 };
                 if consts.contains_key(const_used) {
@@ -140,7 +142,7 @@ pub fn interpret_and_write(
                     return Err(format!(
                         "Syntax error on line {}! Invalid argument format \"{}\"!",
                         actual_line_num, argument
-                    ))
+                    ));
                 }
             };
 
@@ -169,16 +171,35 @@ pub fn interpret_and_write(
             config.opcode_len
         };
 
-        // println!("{}", opcode_len);
-        output_buff.push_str(&format!(
-            "{:0line_num_len$}: {i_opcode:0opcode_len$b}",
-            line_num,
+        let mut instr_buff = String::new();
+
+        instr_buff.push_str(&format!(
+            "{i_opcode:0opcode_len$b}",
+            i_opcode = i_opcode,
             opcode_len = opcode_len
         ));
+
         processed_args.iter().for_each(|a| {
-            output_buff.push_str(a);
+            instr_buff.push_str(a);
             // output_buff.push_str("gówno ")
         });
+
+        let instr_buff = match &output_type {
+            OutputType::BIN => instr_buff,
+            OutputType::OCT => {
+                let parsed = usize::from_str_radix(&instr_buff, 2).unwrap();
+                let instr_len = (config.instruction_len as f64 / 3_f64) as usize;
+                format!("{:0instr_len$o}", parsed, instr_len = instr_len)
+            }
+            OutputType::HEX => {
+                let parsed = usize::from_str_radix(&instr_buff, 2).unwrap();
+                let instr_len = (config.instruction_len as f64 / 4_f64) as usize;
+                format!("{:0instr_len$x}", parsed, instr_len = instr_len)
+            }
+        };
+
+        let instr = format!("{:0line_num_len$}: {}", line_num, instr_buff, line_num_len = line_num_len);
+        output_buff.push_str(&*instr);
         output_buff.push_str("\n");
     }
 

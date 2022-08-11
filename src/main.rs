@@ -5,6 +5,14 @@ mod loader;
 
 use std::fs;
 use clap::Parser;
+use crate::OutputType::BIN;
+
+#[derive(Debug)]
+pub enum OutputType {
+    BIN,
+    OCT,
+    HEX,
+}
 
 #[derive(Parser, Debug)]
 #[clap(author = "jas777", version, about = "A customizable assembly compiler for Minecraft CPUs", long_about = None)]
@@ -18,8 +26,14 @@ struct Arguments {
     #[clap(short, long, value_parser)]
     output: String,
 
+    #[clap(short = 'O', long = "output-format", value_parser, default_value = "bin")]
+    output_format: String,
+
     #[clap(short = 'G', long)]
-    generate_docs: bool
+    generate_docs: bool,
+
+    #[clap(short, long)]
+    force: bool,
 }
 
 fn main() {
@@ -30,10 +44,13 @@ fn main() {
         Ok(file) => file,
         Err(_) => {
             println!("Could not load the file \"{}\"!", &args.input);
-            return
+            return;
         }
     };
-    fs::read_to_string(&args.output).expect_err("That file already exists!");
+
+    if !args.force {
+        fs::read_to_string(&args.output).expect_err("That file already exists!");
+    }
 
     if args.generate_docs {
         match docs::gen_and_write_docs(&configuration.0) {
@@ -42,11 +59,24 @@ fn main() {
         }
     }
 
+    let output_type: OutputType = match args.output_format.as_str() {
+        "bin" => OutputType::BIN,
+        "oct" => OutputType::OCT,
+        "hex" => OutputType::HEX,
+        _ => {
+            println!("Invalid output type! (bin, oct, hex)");
+            return;
+        }
+    };
+
+    println!("{:?}", output_type);
+
     match processor::interpreter::interpret_and_write(
         &input_file,
         &args.output,
         configuration.0.assembler,
         configuration.1,
+        output_type,
     ) {
         Ok(()) => println!("Compiled successfully!"),
         Err(e) => println!("{}", e),
