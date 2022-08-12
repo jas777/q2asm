@@ -5,13 +5,13 @@ mod loader;
 
 use std::fs;
 use clap::Parser;
-use crate::OutputType::BIN;
 
 #[derive(Debug)]
 pub enum OutputType {
     BIN,
     OCT,
     HEX,
+    DEC,
 }
 
 #[derive(Parser, Debug)]
@@ -63,13 +63,12 @@ fn main() {
         "bin" => OutputType::BIN,
         "oct" => OutputType::OCT,
         "hex" => OutputType::HEX,
+        "dec" => OutputType::DEC,
         _ => {
-            println!("Invalid output type! (bin, oct, hex)");
+            println!("Invalid output type! (bin, oct, hex, dec)");
             return;
         }
     };
-
-    println!("{:?}", output_type);
 
     match processor::interpreter::interpret_and_write(
         &input_file,
@@ -81,6 +80,4 @@ fn main() {
         Ok(()) => println!("Compiled successfully!"),
         Err(e) => println!("{}", e),
     }
-
-    // println!("{:#?}", configuration.0);
 }

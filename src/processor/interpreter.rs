@@ -26,7 +26,7 @@ pub fn interpret_and_write(
         Err(err) => return Err(err)
     };
 
-    let consts = match preprocessor::find_consts(&lines) {
+    let consts = match preprocessor::find_constants(&lines) {
         Ok(consts) => consts,
         Err(err) => return Err(err)
     };
@@ -88,12 +88,6 @@ pub fn interpret_and_write(
         let mut processed_args: Vec<String> = Vec::new();
         let mut arg_index: usize = 0;
 
-        // let args_to_iter = &instruction
-        //     .arguments
-        //     .iter()
-        //     .filter(|a| !a.name.starts_with("@"))
-        //     .collect::<Vec<&InstructionArgument>>();
-
         for arg_def in &instruction.arguments {
             if arg_def.name.eq("@fill") {
                 processed_args.push("0".repeat(arg_def.length));
@@ -132,6 +126,17 @@ pub fn interpret_and_write(
                     let const_val = consts.get(const_used).unwrap().to_string();
                     argument = const_val;
                 };
+            }
+
+            if argument.starts_with("-") {
+                argument = match preprocessor::handle_negative_val(argument) {
+                    Ok(val) => val,
+                    Err(_e) => return Err(format!(
+                        "Syntax error on line {}! Invalid argument value for \"{}\"!",
+                        actual_line_num,
+                        arg_def.name
+                    ))
+                }
             }
 
             let parsed_arg = parse_int::parse::<usize>(&argument);
@@ -181,7 +186,6 @@ pub fn interpret_and_write(
 
         processed_args.iter().for_each(|a| {
             instr_buff.push_str(a);
-            // output_buff.push_str("gówno ")
         });
 
         let instr_buff = match &output_type {
@@ -196,6 +200,13 @@ pub fn interpret_and_write(
                 let instr_len = (config.instruction_len as f64 / 4_f64) as usize;
                 format!("{:0instr_len$x}", parsed, instr_len = instr_len)
             }
+            OutputType::DEC => {
+                let parsed = usize::from_str_radix(&instr_buff, 2).unwrap();
+                let max_instr_len = 2_usize
+                    .pow(config.instruction_len as u32 - 1)
+                    .to_string().len();
+                format!("{:0max_instr_len$}", parsed, max_instr_len = max_instr_len)
+            }
         };
 
         let instr = format!("{:0line_num_len$}: {}", line_num, instr_buff, line_num_len = line_num_len);
@@ -203,8 +214,8 @@ pub fn interpret_and_write(
         output_buff.push_str("\n");
     }
 
-    match fs::write(output_path, &output_buff) {
-        Ok(_success) => return Ok(()),
-        Err(_err) => return Err("An error occured while writing to file!".to_owned()),
+    return match fs::write(output_path, &output_buff) {
+        Ok(_success) => Ok(()),
+        Err(_err) => Err("An error occurred while writing to file!".to_owned()),
     };
 }

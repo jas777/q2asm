@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use parse_int::parse;
+use std::fmt::format;
+use crate::config::AssemblerConfig;
 
 pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> {
     let mut labels: HashMap<String, usize> = HashMap::new();
@@ -32,7 +33,7 @@ pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
                     }
 
                     line_num -= 1;
-                    println!("{} -> {}", name, line_num);
+                    println!("Mapping label \"{}\" to {:0b}", name.trim(), line_num);
                     labels.insert(name.to_string(), line_num);
                     continue;
                 }
@@ -40,7 +41,7 @@ pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
                     return Err(format!(
                         "Syntax error on line {}! A label must have a name!",
                         actual_line_num
-                    ))
+                    ));
                 }
             }
         }
@@ -48,8 +49,8 @@ pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
     Ok(labels)
 }
 
-pub fn find_consts(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> {
-    let mut consts: HashMap<String, usize> = HashMap::new();
+pub fn find_constants(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> {
+    let mut constants: HashMap<String, usize> = HashMap::new();
     let mut actual_line_num: usize = 0;
     for line in lines {
         actual_line_num += 1;
@@ -63,7 +64,7 @@ pub fn find_consts(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
         if line.starts_with("#DEFINE") {
             let const_def: Vec<&str> = line.split("--").collect();
             let const_def = const_def[0].trim();
-            
+
             let const_split: Vec<&str> = const_def.split("=").collect();
             let const_name = const_split[0].strip_prefix("#DEFINE");
 
@@ -77,22 +78,48 @@ pub fn find_consts(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
                         ));
                     }
 
-                    let const_val: usize = match parse_int::parse(const_split[1].trim()) {
+                    let mut val_trimmed = const_split[1].trim().to_string();
+                    if val_trimmed.starts_with("-") {
+                        val_trimmed = match handle_negative_val(val_trimmed) {
+                            Ok(val) => val,
+                            Err(e) => return Err(e)
+                        }
+                    }
+
+                    let const_val: usize = match parse_int::parse(&val_trimmed) {
                         Ok(val) => val,
                         Err(_) => return Err(format!("Invalid const value! Const: \"{}\"", name.trim()))
                     };
 
-                    consts.insert(name.trim().to_string(), const_val);
+                    println!("Mapping const \"{}\" to {:0b}", name.trim(), const_val);
+                    constants.insert(name.trim().to_string(), const_val);
                     continue;
                 }
                 None => {
                     return Err(format!(
                         "Syntax error on line {}! A const must have a name!",
                         actual_line_num
-                    ))
+                    ));
                 }
             }
         }
     };
-    Ok(consts)
+    Ok(constants)
+}
+
+pub fn handle_negative_val(value: String) -> Result<String, String> {
+    let val_trimmed_stripped = value.strip_prefix("-").unwrap();
+    let val: usize = match parse_int::parse(val_trimmed_stripped) {
+        Ok(val) => val,
+        Err(_) => return Err(format!("Invalid const value! Const: \"{}\"", ""))
+    };
+
+    let target_len = format!("{:0b}", val).len();
+    let negated = format!("{:0target_len$b}", val - 1)
+        .replace("1", "2")
+        .replace("0", "1")
+        .replace("2", "0");
+
+    let u2_rep = format!("0b{}", negated);
+    Ok(u2_rep)
 }
