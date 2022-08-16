@@ -43,12 +43,12 @@ pub fn interpret_and_write(
             continue;
         }
 
-        if command.len() > 2 {
-            return Err(format!(
-                "Syntax error on line {}! Expected format \"INSTR ARG1,ARG2...\" but found \"{}\"",
-                actual_line_num, line
-            ));
-        }
+        // if command.len() > 2 {
+        //     return Err(format!(
+        //         "Syntax error on line {}! Expected format \"INSTR ARG1,ARG2...\" but found \"{}\"",
+        //         actual_line_num, line
+        //     ));
+        // }
 
         let instruction: &Instruction = match instructions
             .iter()
@@ -69,7 +69,9 @@ pub fn interpret_and_write(
             .filter(|a| !a.name.starts_with("@fill"))
             .count();
         let args: Vec<String> = if command.len() > 1 {
-            command[1].trim().split(",").map(str::to_string).collect()
+            command[1..]
+                .join("").replace(" ", "").trim()
+                .split(",").map(str::to_string).collect()
         } else {
             vec![]
         };
@@ -154,7 +156,7 @@ pub fn interpret_and_write(
                 return Err(format!(
                     "Error on line {}! Argument \"{}\" expected one of {:?}, but got {}!",
                     actual_line_num, arg_def.name, arg_def.accepted_values, parsed_arg
-                ))
+                ));
             }
 
             let mut bin_arg = format!("{:b}", parsed_arg);
