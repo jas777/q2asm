@@ -1,6 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::format;
-use crate::config::AssemblerConfig;
 
 pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> {
     let mut labels: HashMap<String, usize> = HashMap::new();
@@ -30,6 +28,15 @@ pub fn find_labels(lines: &Vec<&str>) -> Result<HashMap<String, usize>, String> 
                             "Syntax error on line {}! A label can't contain any spaces!",
                             actual_line_num
                         ));
+                    }
+
+                    if labels.contains_key(name.trim()) {
+                        return Err(
+                            format!(
+                                "Error on line {}! Label with the name \"{}\" has already been defined!",
+                                actual_line_num, name.trim()
+                            )
+                        );
                     }
 
                     line_num -= 1;
@@ -76,6 +83,15 @@ pub fn find_constants(lines: &Vec<&str>) -> Result<HashMap<String, usize>, Strin
                             "Syntax error on line {}! A const name can't contain any spaces!",
                             actual_line_num
                         ));
+                    }
+
+                    if constants.contains_key(name.trim()) {
+                        return Err(
+                            format!(
+                                "Error on line {}! Constant with the name \"{}\" has already been defined!",
+                                actual_line_num, name.trim()
+                            )
+                        );
                     }
 
                     let mut val_trimmed = const_split[1].trim().to_string();

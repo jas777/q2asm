@@ -1,10 +1,9 @@
 use crate::config::AssemblerConfig;
-use crate::loader::{Instruction, InstructionArgument};
+use crate::loader::{Instruction};
 use crate::processor::preprocessor;
 use parse_int;
-use std::collections::HashMap;
 use std::result::Result;
-use std::{fmt, fs, string, str};
+use std::{fs, str};
 use crate::OutputType;
 
 pub fn interpret_and_write(
@@ -150,6 +149,13 @@ pub fn interpret_and_write(
                     ));
                 }
             };
+
+            if !arg_def.accepted_values.is_empty() && !arg_def.accepted_values.contains(&parsed_arg) {
+                return Err(format!(
+                    "Error on line {}! Argument \"{}\" expected one of {:?}, but got {}!",
+                    actual_line_num, arg_def.name, arg_def.accepted_values, parsed_arg
+                ))
+            }
 
             let mut bin_arg = format!("{:b}", parsed_arg);
 

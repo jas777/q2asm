@@ -1,0 +1,321 @@
+assembler:
+  opcode_len: 5
+  instruction_len: 16
+instructions:
+  - name: CHILL
+    opcode: 0
+    opcode_len: 7
+    arguments:
+      - name: '@fill'
+        length: 9
+  - name: NFADD
+    opcode: 0b0000100
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFSUB
+    opcode: 0b0000101
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFAND
+    opcode: 0b0000110
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFNOR
+    opcode: 0b0000111
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFXOR
+    opcode: 0b0001000
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NXNOR
+    opcode: 0b0001001
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFPCA
+    opcode: 0b0001010
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFPCS
+    opcode: 0b0001011
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFMOV
+    opcode: 0b0001100
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: '@fill'
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFINC
+    opcode: 0b0001101
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: '@fill'
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFDEC
+    opcode: 0b0001110
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: '@fill'
+        length: 3
+      - name: dest
+        length: 3
+  - name: NFRSH
+    opcode: 0b0001111
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: '@fill'
+        length: 3
+      - name: dest
+        length: 3
+  - name: LDIMM
+    opcode: 0b00100
+    opcode_len: 0
+    arguments:
+      - name: immediate
+        length: 8
+      - name: dest
+        length: 3
+  - name: FLADD
+    opcode: 0b0010100
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLSUB
+    opcode: 0b0010101
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLAAND
+    opcode: 0b0010110
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLNOR
+    opcode: 0b0010111
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLXOR
+    opcode: 0b0011000
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLXNOR
+    opcode: 0b0011001
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLPCA
+    opcode: 0b0011010
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: FLPCS
+    opcode: 0b0011011
+    opcode_len: 7
+    arguments:
+      - name: src_a
+        length: 3
+      - name: src_b
+        length: 3
+      - name: dest
+        length: 3
+  - name: BRNCH
+    opcode: 0b01000
+    opcode_len: 0
+    arguments:
+      - name: '@fill'
+        length: 1
+      - name: full_address
+        length: 7
+      - name: condition
+        length: 3
+  - name: DIMRD
+    opcode: 0b01001
+    opcode_len: 0
+    arguments:
+      - name: memory_address
+        length: 5
+      - name: '@fill'
+        length: 3
+      - name: dest
+        length: 3
+  - name: DIMUP
+    opcode: 0b01010
+    opcode_len: 0
+    arguments:
+      - name: memory_address
+        length: 5
+      - name: src
+        length: 3
+      - name: '@fill'
+        length: 3
+  - name: INMRD
+    opcode: 0b01011
+    opcode_len: 0
+    arguments:
+      - name: op
+        length: 2
+        accepted_values: [0b10, 0b11, 0b00]
+      - name: '@fill'
+        length: 6
+      - name: dest
+        length: 3
+  - name: INMUP
+    opcode: 0b01100
+    opcode_len: 0
+    arguments:
+      - name: op
+        length: 2
+      - name: '@fill'
+        length: 3
+      - name: src
+        length: 3
+      - name: '@fill'
+        length: 3
+  - name: PTUPD
+    opcode: 0b01101
+    opcode_len: 0
+    arguments:
+      - name: '@fill'
+        length: 5
+      - name: src
+        length: 3
+      - name: '@fill'
+        length: 3
+  - name: HLTCL
+    opcode: 0b01110
+    opcode_len: 0
+    arguments:
+      - name: U
+        length: 1
+      - name: '@fill'
+        length: 10
+  - name: INOUT
+    opcode: 0b01111
+    opcode_len: 0
+    arguments:
+      - name: '@fill'
+        length: 1
+      - name: io
+        length: 1
+      - name: src-a
+        length: 3
+      - name: port
+        length: 3
+      - name: dest
+        length: 3
+  - name: PCALL
+    opcode: 0b10000
+    opcode_len: 0
+    arguments:
+      - name: '@fill'
+        length: 1
+      - name: full_address
+        length: 7
+      - name: condition
+        length: 3
+  - name: PRTRN
+    opcode: 0b10001
+    opcode_len: 0
+    arguments:
+      - name: '@fill'
+        length: 8
+      - name: condition
+        length: 3

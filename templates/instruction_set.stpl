@@ -1,27 +1,81 @@
 <html>
-    <head>
-        <% include!("build.stpl"); %> 
-    </head>
-    <body>
-        <header>
-            <div>
-                <h1>Instruction set</h1>
-            </div>
-        </header>
-        <main class="flex flex-col justify-center">
-            <table class="">
-                <tr>
-                    <th>Instruction name</th>
-                    <% for i in 1..=config.instruction_len { %> 
-                        <th><%= i %></th>
-                    <% } %> 
-                </tr>
-                <% for instruction in &instructions { %>
-                    <tr>
-                        <td><%= instruction.name %></td>
-                    </tr>
+<head>
+    <% include!("build.stpl"); %>
+    <style>
+        td, th {
+            text-align: center;
+            border: 1px solid black;
+        }
+        tr:nth-child(2n+1)>td {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body class="text-center">
+<header>
+    <div>
+        <h1>Instruction set</h1>
+    </div>
+</header>
+<main class="flex flex-col mx-auto max-w-4xl">
+    <table class="border-1 border-black">
+        <tr>
+            <th>Instruction name</th>
+            <% for i in 1..=config.instruction_len { %>
+                <th class="w-10"><%= i %></th>
+            <% } %>
+        </tr>
+        <% for instruction in &instructions { %>
+            <%
+                let opcode_formatted = format!("{:0len$b}", &instruction.opcode, len = if instruction.opcode_len == 0 {
+                    config.opcode_len
+                } else {
+                    instruction.opcode_len
+                });
+            %>
+            <tr>
+                <td class="bg-indigo-200"><%= instruction.name %></td>
+                <%
+                    for digit in opcode_formatted.split("").filter(|x| !x.is_empty()) {
+                %>
+                    <td class="bg-slate-200 text-center py-1"><%= digit %></td>
                 <% } %>
-            </table>
-        </main>
-    </body>
+                <% for argument in (&instruction).arguments.iter().map(|x| &x.length) { %>
+                    <% for _ in 0..usize::from_str_radix(&argument, 10).unwrap() { %>
+                        <td class="bg-slate-300">0</td>
+                    <% } %>
+                <% } %>
+            </tr>
+            <tr>
+                <td class="bg-sky-100">Arguments</td>
+                <td colspan="<%= opcode_formatted.len() %>" class="bg-sky-300">OPCODE</td>
+                <% for argument in &(&instruction).arguments { %>
+                    <td
+                            colspan="<%= argument.length %>"
+                            class="<%= if argument.name == "@fill" { "bg-slate-300" } else { "bg-sky-300" } %>">
+                        <%= if &argument.name == "@fill" { "" } else { &argument.name } %>
+                    </td>
+                <% } %>
+            </tr>
+            <tr>
+                <td class="border-0"></td>
+                <td class="border-0" colspan="<%= opcode_formatted.len() %>"></td>
+                <% for argument in &(&instruction).arguments { %>
+                    <% let vals = (&argument).accepted_values.clone().unwrap_or(Vec::new()); %>
+                    <td
+                            colspan="<%= &argument.length %>"
+                            class="<%= if &argument.name == "@fill" || vals.is_empty() { "border-0" } else { "bg-teal-300" } %>">
+                        <% for value in vals { %>
+                            <p>
+                                <%= value %>
+                            </p>
+                        <% } %>
+                    </td>
+                <% } %>
+            </tr>
+            <tr class="h-6"></tr>
+        <% } %>
+    </table>
+</main>
+</body>
 </html>

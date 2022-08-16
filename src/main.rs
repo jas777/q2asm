@@ -17,7 +17,7 @@ pub enum OutputType {
 #[derive(Parser, Debug)]
 #[clap(author = "jas777", version, about = "A customizable assembly compiler for Minecraft CPUs", long_about = None)]
 struct Arguments {
-    #[clap(short, long, value_parser, default_value = "instr_set.toml")]
+    #[clap(short, long, value_parser, default_value = "instr_set.yaml")]
     config: String,
 
     #[clap(short, long, value_parser)]
@@ -38,7 +38,13 @@ struct Arguments {
 
 fn main() {
     let args = Arguments::parse();
-    let configuration = loader::load_and_parse(&args.config);
+    let configuration = match loader::load_and_parse(&args.config) {
+        Ok(config) => config,
+        Err(msg) => {
+            println!("{}", msg);
+            return;
+        }
+    };
 
     let input_file = match fs::read_to_string(&args.input) {
         Ok(file) => file,

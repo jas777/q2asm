@@ -1,7 +1,7 @@
 use crate::config::Config;
 use serde_derive::Deserialize;
 use std::fs;
-use toml;
+use serde_yaml;
 
 #[derive(Deserialize, Debug)]
 pub struct Instruction {
@@ -12,18 +12,25 @@ pub struct Instruction {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct Flag {
+    pub name: String,
+    pub value: usize,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct InstructionArgument {
     pub name: String,
     pub length: usize,
+    pub accepted_values: Vec<usize>,
 }
 
-pub fn load_and_parse(_path: &str) -> (Config, Vec<Instruction>) {
+pub fn load_and_parse(path: &str) -> Result<(Config, Vec<Instruction>), String> {
     let mut instructions = Vec::<Instruction>::new();
 
-    let instr_set = fs::read_to_string("instr_set.toml")
+    let instr_set = fs::read_to_string(path)
         .expect("instr_set.toml is required to run the compiler!");
 
-    let instr_set: Config = toml::from_str(&instr_set).expect("Invalid file format!");
+    let instr_set: Config = serde_yaml::from_str(&instr_set).expect("Invalid file format!");
 
     let instr_len = instr_set.assembler.instruction_len;
 
@@ -32,16 +39,27 @@ pub fn load_and_parse(_path: &str) -> (Config, Vec<Instruction>) {
             .arguments
             .iter()
             .map(|x| {
-                let split: Vec<String> = x.as_str().split("-").map(str::to_string).collect();
+                let length = x.length.parse::<usize>().expect(&format!(
+                    "Invalid argument format! Instruction: {}",
+                    instruction.name
+                ));
                 InstructionArgument {
-                    name: split[0].clone(),
-                    length: split[1].parse::<usize>().expect(&format!(
-                        "Invalid argument format! Instruction: {}",
-                        instruction.name
-                    )),
+                    name: x.name.to_owned(),
+                    length,
+                    accepted_values: match &x.accepted_values {
+                        Some(values) => values.iter().map(|val| {
+                            let parsed_val = parse_int::parse::<usize>(val)
+                                .expect(&format!(
+                                    "Invalid accepted value for argument \"{}\" ({})", x.name, val));
+                            if format!("{:0b}", parsed_val).len() > length {
+                                panic!("Accepted value for argument \"{}\" too long!", x.name)
+                            }
+                            parsed_val
+                        }).collect(),
+                        None => Vec::new()
+                    },
                 }
-            })
-            .collect();
+            }).collect();
 
         let mut final_len: usize = constructed_args.iter().map(|arg| arg.length).sum();
         final_len += if instruction.opcode_len != 0 {
@@ -51,10 +69,10 @@ pub fn load_and_parse(_path: &str) -> (Config, Vec<Instruction>) {
         };
 
         if final_len != instr_len {
-            panic!(
+            return Err(format!(
                 "Instruction {} has invalid length! ({} != {})",
                 instruction.name, final_len, instr_len
-            )
+            ));
         }
 
         instructions.push(Instruction {
@@ -65,5 +83,5 @@ pub fn load_and_parse(_path: &str) -> (Config, Vec<Instruction>) {
         });
     }
 
-    (instr_set, instructions)
+    Ok((instr_set, instructions))
 }
